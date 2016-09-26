@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 true=0
-false=0
+false=1
 checkBashVersion() {
     local version="${BASHVERSINFO}"
     printf "%s\n" "${version}"
@@ -93,8 +93,7 @@ charAt() {
     )
 }
 
-endsWidth() {
-    #FIX:It does not work with range of characters
+endsWith() {
     local char="${1}"
     local endswith="${2}"
     declare -i depth="${3}"
@@ -107,9 +106,9 @@ endsWidth() {
 
 
     (
-	local character="${char}"
+	character="${char}"
 	for ((i=1;i<=$depth;i++)) {
-		
+		echo ${#character}
 		while [ -n "$character" ];do
 		    
 		    printOne=$(printf "%c" "$character")
@@ -141,6 +140,8 @@ endsWidth() {
 offset() {
     
     # Bug: It does not deal with negative numbers
+    # better still use ${var:position:length} to get the offset of a value
+    
     local string=${1}
     local position=${2}
     local length=${3}
@@ -161,9 +162,7 @@ offset() {
 	printf "%s\n" "Error: Required an integer for postion but got a string"  && return $false
     [[ "${length}"  =~ [A-Za-z] ]] && \
 	printf "%s\n" "Error: Required an integer for length but got a string" && return $false
-
     if [[ ${position} -gt ${#string} ]] || [[ ${length} -gt ${#string} ]] ;then
-	
 	printf "%s\n" "Error: index is greater than string length"
 	return $false
     fi
@@ -172,7 +171,8 @@ offset() {
 	# Kill all the variables declared inside this subshell when done
 	# Using index++ inside the for (()) introduced an unwanted feature
 	# i had  to take it to the body of the while loop
-	for ((index=0;index<=${#string};)) {	
+	for ((index=0;index<=${#string};)) {
+		
 		while [ -n "${string}" ];do
 
 		    (( index == position )) && {
@@ -188,8 +188,6 @@ offset() {
 				    (( ${#string} == length )) && {
 					echo "$string" && return $true;
 				    }
-				    # rev revserses the string
-				    # TODO: Implement your on rev function , incase rev is not installed on the users box
 				    string=${string%$(printf "%c" "$(rev <<<${string})")*}
 				    # : >> don't run the result of $(( ind++ ))
 				    # better still ind=$(( ind++ ))
@@ -211,22 +209,157 @@ offset() {
 
 }
 
-isNumber() {
-    :
-}
-
-isString() {
-    :
+isInteger() {
+    
+    local number="${1}"
+    
+    [[ -z "${number}" ]] && {
+	printf "%s\n" "Usage: ${FUNCNAME} number"
+	return $false
+    }
+    
+    # check if the content of $number is an alphabet or any punctuation mark
+    if egrep -q "([[:alpha:]])|([[:punct:]])" <<<"${number}";then
+	return $false
+    fi
+    
+    return $true
 }
 
 int() {
-    :
+    # get all the integers before the decimal point
+    # non integers values will cause an error
+    local integer="${1}"
+
+    [[ -z "${integer}" ]] && {
+	printf "%s\n" "Usage: ${FUNCNAME} number"
+	return $false
+    }
+
+    isInteger $integer
+
+    # if the exit status of "isInteger $integer" greater than 0 enter the below block of code
+    [[ $? != 0 ]] && {
+	# setting integer to another variable
+	local privInteger=$integer
+	local ind;
+	for ((ind=0;ind<=${#privInteger};)) {
+		
+		# while privInteger is non-zero i.e if there is still information in privInteger
+		
+		while [ -n "$privInteger" ];do
+		    # save the first character of privInteger in printchar variable
+		    local printchar=$(printf "%c" "${privInteger}" )
+		    # cut the first character in privInteger until there is nothing in privInteger
+		    privInteger=${privInteger#*$printchar}
+		    # incase printchar variable does not contain 0-9 or .
+		    [[ ! $printchar =~ ([0-9\.]) ]] && {
+			# declare a variable space
+			local space=""
+			# save integer again on another variable
+			local int=$integer
+			local err;
+			for ((err=0;err<=${#int};)) {
+				# this block of code , will add a single space to the space variable
+				# aslong as int is non-zero and $pchar(see the next while loop ) does not equal printchar
+				# Note:- $printchar is the single value that does not equal 0-9 or .
+				# if a match is find return from this function with return code of 1
+				while [ -n "${int}" ];do
+				    local pchar=$(printf "%c" "${int}")
+				    [[ $pchar == $printchar ]] && {
+					printf "%s\n" "${integer}"
+					printf "%s\n" "$space^Invalid character"	    
+					return $false
+				    }
+				    space+=" "
+				    : $(( err++ ))
+				    # cut a single value from int until there is nothing inside
+				    int=${int#*$pchar}
+				done
+				
+			    } ; #end of $err
+				
+			    
+		    } ; # End of $printchar
+		    
+		    #for ((period=0;period<=${#integer};period++)) {
+		    #	echo $printchar
+		    #   }
+		    
+		    : $(( ind++ ))
+		done
+		# printchar does not equal any punct value
+		# cut any leading . forward
+		printf "%s\n" "${integer%%.*}"
+		return $true
+	    }
+    }
+    printf "%s\n" "${integer}"
+    return $true
+    
+    
 }
 
 raw() {
-    :
+    # you might not need this
+    local str="${1}"
+    [[ -z "${@}" ]] && {
+	printf "%s\n" "Usage: raw string"
+    }
+    sed 's|\\|\\\\|g' <<<"${str}"
+}
+destructure() {
+    
+    # do not quote the array argument
+    # it is important you quote the second argument to this function
+    # associative arrays work in alphabetical order
+    # use "," to separate the variables to assign each array element to
+    
+    [[ -z "${@}" ]] && {
+	
+	printf "%s\n" "Usage: ${FUNCNAME}  array values"
+	printf "%s\n" "destructure \${array[@]} \"var1,var2,,var3\""
+	printf "%s\n" "The array should not be quoted but the variables to assign the array element should be quoted"
+	return $false
+    }
+    
+    # Substract 1 from the total number of arguments
+    local arrayLength=$(( ${#@} - 1))
+    # get the location of the last argument
+    local str=$(( arrayLength + 1 ))
+    # get the value of the last argument using indirect reference ( ! )
+    local strToDestruct="${!str},"
+    declare -i y=0;
+    local varList;
+    # loop through the length of arrayLength
+    for ((i=0;i<=$arrayLength;)) {
+	    # for j in the total number of arguments
+	    for j ; do
+		# if the value of i equals the length of our arrayLength variable, break from the 2 loops
+		(( i == arrayLength )) && break 2;
+		while [ -n "$strToDestruct" ] ;do
+		    (( y == arrayLength )) && break 3;
+		    local destruct=${strToDestruct%%,*}
+		    strToDestruct=${strToDestruct#*,}
+		    [[ -z "${destruct}" ]] && {
+			declare -x null=""
+			varList+=${!destruct},
+			: $(( y++ ))
+			continue
+		    }
+		    declare -g $destruct=$j
+		    varList+=${!destruct},
+		    : $(( y++ ))
+		    continue 2;
+		    
+		done
+		: $(( i++ ))
+	    done
+	}
+	varList=${varList%,*}
+	echo {$varList}
 }
 
-destructure() {
+...() {
     :
 }
