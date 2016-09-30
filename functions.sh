@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 true=0
 false=1
 checkBashVersion() {
@@ -219,9 +220,23 @@ isInteger() {
     }
     
     # check if the content of $number is an alphabet or any punctuation mark
-    if egrep -q "([[:alpha:]])|([[:punct:]])" <<<"${number}";then
-	return $false
-    fi
+
+    (
+	for ((i=0;i<=${#number};)) {
+		while [ -n "$number" ];do
+		    printNumber=$(printf "%c" "$number")
+		    [[ ! $printNumber == [0-9] ]] && return $false
+		    number=${number#*?}
+		    : $(( i++ ))
+		done
+	    }
+    )
+
+    [[ $? == 1 ]] && return $false
+    
+    #if egrep -q "([[:alpha:]])|([[:punct:]])" <<<"${number}";then
+    #return $false
+    #fi
     
     return $true
 }
@@ -310,7 +325,7 @@ raw() {
 }
 destructure() {
     
-    # do not quote the array argument
+    # do not quote the array argument ( first agument )
     # it is important you quote the second argument to this function
     # associative arrays work in alphabetical order
     # use "," to separate the variables to assign each array element to
@@ -342,8 +357,8 @@ destructure() {
 		    local destruct=${strToDestruct%%,*}
 		    strToDestruct=${strToDestruct#*,}
 		    [[ -z "${destruct}" ]] && {
-			declare -x null=""
-			varList+=${!destruct},
+			declare -x null="null"
+			varList+=$null, # ${!destruct} >> ignore this comment
 			: $(( y++ ))
 			continue
 		    }
@@ -361,5 +376,68 @@ destructure() {
 }
 
 ...() {
-    :
+    # Spread a bunch of string inside an array
+    # for example:-
+    # str=bash
+    # array=( $(... $str) )
+    # echo ${str[@]}
+    # b a s h
+    
+    local stringToSpread="$@"
+
+    [[ -z "${stringToSpread}" ]] && {
+
+	printf "%s\n" "Usage: ${FUNCNAME} string"
+	return $false
+    }
+    [[ ${#@} -eq 1 ]] && {
+	for ((i=0;i<=${#stringToSpread};i++)) {
+		while [[ -n "${stringToSpread}" ]];do
+		    printf "%c\n" "${stringToSpread}"		    
+		    stringToSpread=${stringToSpread#*?}
+		done
+	    }
+    }
+    
+    
+    
 }
+
+map() {
+    # dont'quote the array arugment ( i.e the first agument )
+    local array=$(( ${#@} - 1 ))
+    local callback=$(( array + 1 ))
+    declare -ga mapArray
+    [[ -z ${#@} ]] && {
+	printf "%s\n" "Usage: ${FUNCNAME} array callback"
+	return $false
+    }
+    # stupid hack to test if argument 1 is an array
+    [[ ${array} -le 1 ]] && {
+	printf "%s\n" "Error: ${array} is not an Array"
+	return $false
+    }
+
+    [[ -z "${callback}" ]] && {
+	printf "%s\n" "Error: No Callback argument was provided"
+	return $false
+    }
+    
+    declare -F ${!callback} >/dev/null
+    [[ $? == 1 ]] && {
+	printf "%s\n" "Error: ${!callback} has not been defined"
+	return $false
+    }
+    
+    for ((i=0;i<=${#array};)) {
+	    for j;do
+		(( i == array )) && break 2;
+		mapArray+=( $(s $j) )
+
+		: $(( i++ ))
+	    done
+
+	}
+	
+}
+
