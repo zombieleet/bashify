@@ -432,12 +432,18 @@ map() {
     for ((i=0;i<=${#array};)) {
 	    for j;do
 		(( i == array )) && break 2;
-		mapArray+=( $(s $j) )
+		mapArray+=( $(${!callback} $j) )
 
 		: $(( i++ ))
 	    done
 
 	}
+	echo ${mapArray[@]}
 	
 }
-
+a=( 1 2 3 4 5 6 )
+s() {
+    echo $(( $1 * 5 ))
+    
+}
+map ${a[@]} "s"
