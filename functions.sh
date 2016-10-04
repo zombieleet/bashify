@@ -405,6 +405,7 @@ destructure() {
 
 map() {
     # dont'quote the array arugment ( i.e the first agument )
+    echo ${#@}
     local array=$(( ${#@} - 1 ))
     local callback=$(( array + 1 ))
     declare -ga mapArray
@@ -414,7 +415,7 @@ map() {
     }
     # stupid hack to test if argument 1 is an array
     [[ ${array} -le 1 ]] && {
-	printf "%s\n" "Error: ${array} is not an Array"
+	printf "%s\n" "Error: ${!array} is not an Array"
 	return $false
     }
 
@@ -422,13 +423,18 @@ map() {
 	printf "%s\n" "Error: No Callback argument was provided"
 	return $false
     }
-    
     declare -F ${!callback} >/dev/null
-    [[ $? == 1 ]] && {
-	printf "%s\n" "Error: ${!callback} has not been defined"
-	return $false
+    [[ $? -ge 1 ]] && {
+	eval ${!callback} &>/dev/null
+	[[ $? -ge 1 ]] && {   
+	    printf "%s\n" "Error: bad ${!callback} "
+	    return $false
+	} || {
+	    echo "hi"
+	    return $true
+	}
     }
-    
+   
     for ((i=0;i<=${#array};)) {
 	    for j;do
 		(( i == array )) && break 2;
@@ -441,9 +447,8 @@ map() {
 	echo ${mapArray[@]}
 	
 }
-a=( 1 2 3 4 5 6 )
+a=( 1 2 3 4 )
 s() {
-    echo $(( $1 * 5 ))
-    
+    echo $(( $1**$1))
 }
 map ${a[@]} "s"
