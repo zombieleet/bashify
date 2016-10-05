@@ -2,37 +2,6 @@
 
 true=0
 false=1
-checkBashVersion() {
-    local version="${BASHVERSINFO}"
-    printf "%s\n" "${version}"
-}
-<<EOF
-checkNumberOfArgs() {
-    declare -i numArgs="$((${1} - 1))"
-    declare -i requiredNumArgs="${2}"
-    
-    (( numArgs > requiredNumArgs )) && \
-	printf "%s\n" "Error: requires ${requiredNumArgs} args, but passed ${numArgs} args" && return $false
-}
-
-String() {
-    local stringFunction=${1}
-    case ${stringFunction} in
-	repeatString)
-	    checkNumberOfArgs ${#@} 2
-	    repeatString "${2}" "${3}" ;;
-	endsWidth)
-	;;
-	charAt)
-	    checkNumberOfArgs ${#@} 2
-	    charAt "${2}" "${3}"
-	    ;;
-	startsWidth) ;;
-	includes) ;;
-	*) printf "%s\n" "${stringFunction} is not a valid string operation" && return $false;;
-    esac
-}
-EOF
 
 repeatString() {
     local stringToRepeat="${1}"
@@ -329,7 +298,12 @@ destructure() {
     # it is important you quote the second argument to this function
     # associative arrays work in alphabetical order
     # use "," to separate the variables to assign each array element to
-    
+    # for example
+    # array=( bash ksh zsh )
+    # destructure ${array[@]} "var1,var2,var3"
+    # echo $var1
+    # echo $var2
+    # echo $var3
     [[ -z "${@}" ]] && {
 	
 	printf "%s\n" "Usage: ${FUNCNAME}  array values"
@@ -376,6 +350,7 @@ destructure() {
 }
 
 ...() {
+    
     # Spread a bunch of string inside an array
     # for example:-
     # str=bash
@@ -390,10 +365,11 @@ destructure() {
 	printf "%s\n" "Usage: ${FUNCNAME} string"
 	return $false
     }
+    
     [[ ${#@} -eq 1 ]] && {
 	for ((i=0;i<=${#stringToSpread};i++)) {
 		while [[ -n "${stringToSpread}" ]];do
-		    printf "%c\n" "${stringToSpread}"		    
+		    printf "%c\n" "${stringToSpread}"
 		    stringToSpread=${stringToSpread#*?}
 		done
 	    }
@@ -405,7 +381,7 @@ destructure() {
 
 map() {
     # dont'quote the array arugment ( i.e the first agument )
-    echo ${#@}
+    # If you pass in a function as the callback using the function command you should wrap it in single quotes
     local array=$(( ${#@} - 1 ))
     local callback=$(( array + 1 ))
     declare -ga mapArray
@@ -415,7 +391,7 @@ map() {
     }
     # stupid hack to test if argument 1 is an array
     [[ ${array} -le 1 ]] && {
-	printf "%s\n" "Error: ${!array} is not an Array"
+	printf "%s\n" "Error: first argument is not an Array"
 	return $false
     }
 
@@ -424,31 +400,45 @@ map() {
 	return $false
     }
     declare -F ${!callback} >/dev/null
+
     [[ $? -ge 1 ]] && {
+	#Evaluate the callback
 	eval ${!callback} &>/dev/null
+	#If the previous command exit status is greater or equal to 1
 	[[ $? -ge 1 ]] && {   
 	    printf "%s\n" "Error: bad ${!callback} "
 	    return $false
-	} || {
-	    echo "hi"
-	    return $true
 	}
+	
+	local command=$(egrep -o "\w+\(\)" <<<${!callback})
+	command=${command/()/}
+	for ((i=0;i<=${#array};)) {
+		for j; do
+		    (( i == array )) && break 2;
+		    mapArray+=( $($command $j) )
+		    : $(( i++ ))
+		done
+	    }
+	    echo "${mapArray[@]}"
+	return $true
     }
-   
+
     for ((i=0;i<=${#array};)) {
 	    for j;do
 		(( i == array )) && break 2;
-		mapArray+=( $(${!callback} $j) )
+		mapArray+=( ${!callback} $j )
 
 		: $(( i++ ))
 	    done
 
 	}
-	echo ${mapArray[@]}
+	echo "${mapArray[@]}"
 	
 }
-a=( 1 2 3 4 )
-s() {
-    echo $(( $1**$1))
-}
-map ${a[@]} "s"
+array=( bash ksh zsh )
+destructure ${array[@]} "b,k,z"
+
+
+echo $b
+echo $k
+echo $z
