@@ -24,7 +24,6 @@ repeatString() {
 	    printf "\n"				
     )    
 }
-
 charAt() {
     local  char="${1}"
     declare -i charPosition=${2}
@@ -142,7 +141,6 @@ endsWith() {
 	    }
     )
 }
-
 offset() {
     # Bug: It does not deal with negative numbers
     # better still use ${var:position:length} to get the offset of a value
@@ -304,7 +302,6 @@ int() {
     printf "%s\n" "${integer}"
     return $true
 }
-
 raw() {
     # you might not need this
     local str="${1}"
@@ -350,11 +347,13 @@ destructure() {
 		    (( y == arrayLength )) && break 3;
 		    local destruct=${strToDestruct%%,*}
 		    strToDestruct=${strToDestruct#*,}
-		    [[ -z "${destruct}" ]] && {
+		    {
+			[[ -z "${destruct}" ]] || [[ "${destruct}" == +( ) ]]
+		    }  && {
 			declare -x null="null"
 			varList+=${!destruct}, # ${null} >> ignore this comment
 			: $(( y++ ))
-			continue
+			continue 2
 		    }
 		    declare -g $destruct=$j
 		    varList+=${!destruct},
@@ -366,7 +365,6 @@ destructure() {
 	    done
 	}
 	varList=${varList%,*}
-	echo {$varList}
 }
 
 ...() {
@@ -422,7 +420,7 @@ foreach() {
 	eval ${!callback} &>/dev/null
 	#If the previous command exit status is greater or equal to 1
 	[[ $? -ge 1 ]] && {   
-	    printf "%s\n" "Error: bad ${!callback} "
+	    printf "%s\n" "Error: bad array callback"
 	    return $false
 	}
 	
@@ -431,7 +429,7 @@ foreach() {
 	for ((i=0;i<=${#array};)) {
 		for j; do
 		    (( i == array )) && break 2;
-		    newArray+=( $($command $j) )
+		    newArray+=( $( $command $j ) )
 		    : $(( i++ ))
 		done
 	    }
@@ -442,7 +440,7 @@ foreach() {
     for ((i=0;i<=${#array};)) {
 	    for j;do
 		(( i == array )) && break 2;
-		newArray+=( ${!callback} $j )
+		newArray+=( $( ${!callback} $j) )
 
 		: $(( i++ ))
 	    done
@@ -450,17 +448,13 @@ foreach() {
 	echo "${newArray[@]}"
 }
 
-find() {
-    :
-}
-
 copyWithin() {
     local array=$1
     declare -i indexToCopyFrom=$2
     declare -i indexToCopyTo=$3
     read -a array <<<"$array"
-    local valueOfIndexToCopyFrom=${a[$indexToCopyFrom]}
-    #local valueOfIndexToCopyTo=${a[$indexToCopyTo]}
+    local valueOfIndexToCopyFrom=${array[$indexToCopyFrom]}
+    local valueOfIndexToCopyTo=${array[$indexToCopyTo]}
     {
 	[[ -z ${@} ]] || [[ -z "$array" ]]
     } && {
@@ -471,7 +465,7 @@ copyWithin() {
     echo ${array[@]}
     return $true;
 }
-<<<EOF
+<<'EOF'
 keys() {
     local array=$1
     read -a array <<<"$array"
