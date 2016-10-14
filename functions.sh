@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 true=0
 false=1
 
@@ -8,15 +7,14 @@ repeatString() {
     declare -i depth="${2}"
     
     if [[ -z "${stringToRepeat}" ]];then
-	printf "%s\n" "Usage: String ${FUNCNAME} string ?depth"
+	printf "%s\n" "Usage:${FUNCNAME} string ?depth"
 	return $false
     fi
     
     (( depth == 0 )) && depth=1
     
     (
-	# depthIndex will loose it value after been executed in this subshell
-	
+	# depthIndex will loose it value after been executed in this subshell	
 	for ((depthIndex=0;depthIndex<${depth};depthIndex+=1)) {
 		
 		printf "%s" "${stringToRepeat}"
@@ -24,8 +22,7 @@ repeatString() {
 	    }
 	    
 	    printf "\n"				
-    )
-    
+    )    
 }
 
 charAt() {
@@ -33,7 +30,7 @@ charAt() {
     declare -i charPosition=${2}
     
     [[ -z "${char}" ]] && \
-	printf "%s\n" "Usage: String ${FUNCNAME} string (position to extract string)" && return $false
+	printf "%s\n" "Usage:${FUNCNAME} string (position to extract string)" && return $false
     
     {
 	[[ ${charPosition} -eq 0 ]] && printf "%c\n" "${char}" && return $true
@@ -62,6 +59,47 @@ charAt() {
 	done
     )
 }
+includes() {
+    local char="${1}"
+    local includes="${2}"
+    declare -i depth="${3}"
+    {
+	[[ -z "$char" ]] || [[ -z "$includes" ]]
+    } && printf "%s\n" "Usage:${FUNCNAME} string includesToCheck ?depth" && return $false;
+    if  [[ $depth -gt ${#char} ]];then
+	depth=0
+    elif [[ $depth != 0 ]];then
+	while [[ -n $char ]];do
+	    if [[ ! $depth -eq ${#char} ]];then
+		char=${char#*?}
+		continue ;
+	    fi
+	    break ;
+	done
+    fi
+    
+    for ((i=$depth;i<=${#char};)) {
+	    while [[ -n $char ]] || [[ -n $includes ]];do
+		printChar=$(printf "%c\n" "$char")
+		printIncludes=$(printf "%c\n" "$includes" )
+		
+		[[ -z $printIncludes ]] && {
+		    printf "%s\n" "true"
+		    return $true
+		    
+		} # did this to fix a bug, if the string can be cut to the ending and printInlcudes become null that means all other test was true
+
+
+		
+		if [[ $printChar !=  $printIncludes ]];then
+		    printf "%s\n" "false" && return $false
+		fi
+		char=${char#*?}
+		includes=${includes#*?}
+		: $(( i++ ))
+	    done
+	}
+}
 
 endsWith() {
     local char="${1}"
@@ -70,7 +108,7 @@ endsWith() {
 
     {
 	[[ -z "$char" ]] || [[ -z "$endswith" ]]
-    } && printf "%s\n" "Usage: String ${FUNCNAME} string endToCheck ?depth" && return $false
+    } && printf "%s\n" "Usage:${FUNCNAME} string endToCheck ?depth" && return $false
     
     (( depth == 0 )) && depth=${#char}
 
@@ -78,7 +116,6 @@ endsWith() {
     (
 	character="${char}"
 	for ((i=1;i<=$depth;i++)) {
-		echo ${#character}
 		while [ -n "$character" ];do
 		    
 		    printOne=$(printf "%c" "$character")
@@ -104,28 +141,20 @@ endsWith() {
 		
 	    }
     )
-    
 }
 
 offset() {
-    
     # Bug: It does not deal with negative numbers
     # better still use ${var:position:length} to get the offset of a value
-    
     local string=${1}
     local position=${2}
     local length=${3}
 
     [[ -z "${string}" ]] && printf "%s\n" "Error: String to work with was not specified" && \
-	
-	printf "%s\n" "Usage: ${FUNCNAME} string ?postion ?length" && return $false
-    
-
+	printf "%s\n" "Usage:${FUNCNAME} string ?postion ?length" && return $false
     if [[ -z "${position}" ]] && [[ -z "${length}" ]];then
-	
 	printf "%s\n" "${string}"
 	return $true
-	
     fi
 
     [[ "${position}" =~ [A-Za-z] ]] && \
@@ -163,11 +192,7 @@ offset() {
 				    # better still ind=$(( ind++ ))
 				    : $(( ind++ ))
 				done
-			    }
-
-			
-			
-			
+			    }	
 		    }
 		    
 		    printOneChar=$(printf "%c" "${string}" )
@@ -176,11 +201,9 @@ offset() {
 		done
 	    }
     )
-
 }
 
 isInteger() {
-    
     local number="${1}"
     
     [[ -z "${number}" ]] && {
@@ -229,7 +252,7 @@ int() {
 	local ind;
 	for ((ind=0;ind<=${#privInteger};)) {
 		
-		# while privInteger is non-zero i.e if there is still information in privInteger
+		# while privInteger is non-zero i.e if there is still text in privInteger
 		
 		while [ -n "$privInteger" ];do
 		    # save the first character of privInteger in printchar variable
@@ -280,8 +303,6 @@ int() {
     }
     printf "%s\n" "${integer}"
     return $true
-    
-    
 }
 
 raw() {
@@ -293,7 +314,6 @@ raw() {
     sed 's|\\|\\\\|g' <<<"${str}"
 }
 destructure() {
-    
     # do not quote the array argument ( first agument )
     # it is important you quote the second argument to this function
     # associative arrays work in alphabetical order
@@ -306,7 +326,7 @@ destructure() {
     # echo $var3
     [[ -z "${@}" ]] && {
 	
-	printf "%s\n" "Usage: ${FUNCNAME}  array values"
+	printf "%s\n" "Usage:${FUNCNAME}  array values"
 	printf "%s\n" "destructure \${array[@]} \"var1,var2,,var3\""
 	printf "%s\n" "The array should not be quoted but the variables to assign the array element should be quoted"
 	return $false
@@ -332,7 +352,7 @@ destructure() {
 		    strToDestruct=${strToDestruct#*,}
 		    [[ -z "${destruct}" ]] && {
 			declare -x null="null"
-			varList+=$null, # ${!destruct} >> ignore this comment
+			varList+=${!destruct}, # ${null} >> ignore this comment
 			: $(( y++ ))
 			continue
 		    }
@@ -350,7 +370,6 @@ destructure() {
 }
 
 ...() {
-    
     # Spread a bunch of string inside an array
     # for example:-
     # str=bash
@@ -374,17 +393,14 @@ destructure() {
 		done
 	    }
     }
-    
-    
-    
 }
 
-map() {
+foreach() {
     # dont'quote the array arugment ( i.e the first agument )
     # If you pass in a function as the callback using the function command you should wrap it in single quotes
     local array=$(( ${#@} - 1 ))
     local callback=$(( array + 1 ))
-    declare -ga mapArray
+    declare -ga newArray
     [[ -z ${#@} ]] && {
 	printf "%s\n" "Usage: ${FUNCNAME} array callback"
 	return $false
@@ -415,30 +431,62 @@ map() {
 	for ((i=0;i<=${#array};)) {
 		for j; do
 		    (( i == array )) && break 2;
-		    mapArray+=( $($command $j) )
+		    newArray+=( $($command $j) )
 		    : $(( i++ ))
 		done
 	    }
-	    echo "${mapArray[@]}"
+	    echo "${newArray[@]}"
 	return $true
     }
 
     for ((i=0;i<=${#array};)) {
 	    for j;do
 		(( i == array )) && break 2;
-		mapArray+=( ${!callback} $j )
+		newArray+=( ${!callback} $j )
 
 		: $(( i++ ))
 	    done
-
 	}
-	echo "${mapArray[@]}"
-	
+	echo "${newArray[@]}"
 }
-array=( bash ksh zsh )
-destructure ${array[@]} "b,k,z"
 
+find() {
+    :
+}
 
-echo $b
-echo $k
-echo $z
+copyWithin() {
+    local array=$1
+    declare -i indexToCopyFrom=$2
+    declare -i indexToCopyTo=$3
+    read -a array <<<"$array"
+    local valueOfIndexToCopyFrom=${a[$indexToCopyFrom]}
+    #local valueOfIndexToCopyTo=${a[$indexToCopyTo]}
+    {
+	[[ -z ${@} ]] || [[ -z "$array" ]]
+    } && {
+	printf "%s\n" "Usage: copyWithin arrayArgument indexToCopyFrom indexToCopyto"
+	return $false
+    }
+    array[$indexToCopyTo]=$valueOfIndexToCopyFrom
+    echo ${array[@]}
+    return $true;
+}
+<<<EOF
+keys() {
+    local array=$1
+    read -a array <<<"$array"
+    local getInfo=$(declare -p array)
+    [[ -z "$array" ]] && {
+	printf "%s\n" "Usage: keys arrayArgument"
+	return $false
+    }
+    a=( ["theif"]="victory" ["theif1"]="favour" ["theif2"]="johnson" )
+    local getInfo=$(declare -p a)
+    arrKeys=$(egrep -o '(\[[[:alnum:]]+\])' <<<"$getInfo")
+    echo \'${arrKeys}\'    
+}
+
+declare -A a=( ["theif"]="victory" ["theif1"]="favour" ["theif2"]="johnson" )
+
+keys "${a[*]}"
+EOF
