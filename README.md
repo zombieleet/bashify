@@ -4,61 +4,61 @@ List of helper functions
 #repeatString
 repeats a string 
 
-`repeatString string ?depth
+`repeatString string ?depth`
 
-depth >> how many times to repeat the string
+`depth >> how many times to repeat the string`
 
-repeatString "bash" 5
+`repeatString "bash" 5`
 
->>> bashbashbash `
+`>>> bashbashbash `
 
 #charAt
 get the character position of a string
 
-`charAt string positionToSearch
+`charAt string positionToSearch`
 
-charAt "bash" 2
+`charAt "bash" 2`
 
->>> a`
+`>>> a`
 
 #includes
 check if a word is in a string
 
-`includes string stringToSearch ?depth
+`includes string stringToSearch ?depth`
 
-depth >> where to start search from
+`depth >> where to start search from`
 
-includes "bash" sh 2
+`includes "bash" sh 2`
 
-returns 1 for false or 0 for true`
+`returns 1 for false or 0 for true`
 
 #endsWith
 check if a word is the end in a string
 
-`endsWith string endToCheck ?depth
+`endsWith string endToCheck ?depth`
 
-depth >>> where to start the search from
+`depth >>> where to start the search from`
 
-endsWith "bash" a 2
+`endsWith "bash" a 2`
 
-returns 1 for false or 0 for true`
+`returns 1 for false or 0 for true`
 
 #isInteger
 check if a value is an integer
 
-`isInteger number
+`isInteger number`
 
-return 1 for non integers or 0 for integers`
+`return 1 for non integers or 0 for integers`
 
 #int
 get all the integers before the decimal point
 non integers values will cause an error
 
-`int number
+`int number`
 
-int 25.8
+`int 25.8`
 
-25`
+`25`
 
 #destructure
 set the content of an array into different variables
@@ -67,65 +67,65 @@ gotchas:- do not quote the array argument ( first agument )
           associative arrays work in alphabetical order
           use "," to separate the variables to assign each array element to
           
-`destrucutre array values
+`destrucutre array values`
 
-array=( bash ksh zsh )
+`array=( bash ksh zsh )`
 
-destructre ${array[@]} "shell1,,shell2"
+`destructre ${array[@]} "shell1,,shell2"`
 
-echo $shell1  > bash
+`echo $shell1  > bash`
 
-echo $shell2 > zsh 
+`echo $shell2 > zsh `
 
-destructure ${array[@]} "shell1,shell2,shell3"
+`destructure ${array[@]} "shell1,shell2,shell3"`
 
-echo $shell1 > bash
+`echo $shell1 > bash`
 
-echo $shell2 > ksh
+`echo $shell2 > ksh`
 
-echo $shell3 > zsh`
+`echo $shell3 > zsh`
 
 #...
 Spread a bunch of string inside an array
 
-`... string
+`... string`
 
-str=bash
+`str=bash`
 
-array=( $(... $str) )
+`array=( $(... $str) )`
 
-echo ${str[@]}
+`echo ${str[@]}`
 
->> b a s h`
+`>> b a s h`
 
 #foreach
 foreach element of an array execute a function 
 gotchas: dont'quote the array arugment ( i.e the first agument )
          If you pass in a function as the callback using the function command you should wrap it in single quotes
          
-`s() { echo $(( $1 * $1 )) ;}
+`s() { echo $(( $1 * $1 )) ;}`
 
-array=( 1 2 3 4 5 6 )
+`array=( 1 2 3 4 5 6 )`
 
-foreach ${array[@]} s
+`foreach ${array[@]} s`
 
->>> 2 4 6 8 10 12
+`>>> 2 4 6 8 10 12`
 
-foreach ${array[@]} 'function s() { echo $(( $1 + $1 )) ;}' >> always end the function with a (
-;} )  
+`foreach ${array[@]} 'function s() { echo $(( $1 + $1 )) ;}' >> always end the function with a (
+;} )  `
 
->>> 2 4 6 8 10 12`
+`>>> 2 4 6 8 10 12`
 
 
 #copyWithin
 copy an array index into another index
 quote the first argument use ${array[\*]} instead of ${array[@]}
 
-`copyWithin arrayArgument indexToCopyfrom indexToCopyTo
+`copyWithin arrayArgument indexToCopyfrom indexToCopyTo`
 
-array=( "bash" "ksh" "zsh" "csh" )
+`array=( "bash" "ksh" "zsh" "csh" )`
 
-copyWithin "${array[*]}" 1 3
+`copyWithin "${array[*]}" 1 3`
 
-bash ksh zsh ksh`
+`bash ksh zsh ksh`
 
