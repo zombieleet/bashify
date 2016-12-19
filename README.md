@@ -83,11 +83,11 @@ use "," to separate the variables to assign each array element to
           
           
 ```bash          
-destrucutre array values
+destructure array values
 
 array=( bash ksh zsh )
 
-destructre ${array[@]} "shell1,,shell2"
+destructure ${array[@]} "shell1,,shell2"
 
 echo $shell1  # bash
 
