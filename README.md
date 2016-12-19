@@ -14,7 +14,7 @@ repeatString "bash" 5 # bashbashbashbashbash
 
 #charAt
 
-get the character position of a string
+get the position of a character in a string
 
 ```bash
 charAt string positionToSearch
@@ -37,7 +37,7 @@ includes "bash" sh 2
 ```
 
 #endsWith
-check if a word is the end in a string
+check if a word is at the end of a string
 ```bash
 endsWith string endToCheck ?depth
 
@@ -60,7 +60,7 @@ isInteger number
 
 #int
 get all the integers before the decimal point
-non integers values will cause an error
+non integers values will throw an error
 
 ```bash
 int number
@@ -72,6 +72,7 @@ int 25.8 ; # 25
 set the content of an array into different variables
 
 gotchas
+
 do not quote the array argument ( first agument )
 
 it is important you quote the second argument to this function
@@ -117,8 +118,12 @@ echo ${str[@]} # b a s h
 
 #foreach
 foreach element of an array execute a function 
-gotchas: dont'quote the array arugment ( i.e the first agument )
-         If you pass in a function as the callback using the function command you should wrap it in single quotes
+
+gotchas: 
+
+don't quote the array arugment ( i.e the first argument )
+
+If you pass in a function as a callback using the function command you should wrap it in single quote
 
 
 ```bash
