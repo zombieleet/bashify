@@ -1,5 +1,5 @@
 # bashify
-List of helper functions
+few helper functions in bash
 
 #repeatString
 repeats a string 
