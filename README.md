@@ -9,7 +9,7 @@ repeatString string ?depth
 
 #depth >> how many times to repeat the string
 
-repeatString "bash" 5 # bashbashbash
+repeatString "bash" 5 # bashbashbashbashbash
 ```
 
 #charAt
