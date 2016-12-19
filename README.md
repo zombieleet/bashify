@@ -70,10 +70,16 @@ int 25.8 ; # 25
 #destructure
 
 set the content of an array into different variables
-gotchas:- do not quote the array argument ( first agument )
-          it is important you quote the second argument to this function
-          associative arrays work in alphabetical order
-          use "," to separate the variables to assign each array element to
+
+gotchas
+do not quote the array argument ( first agument )
+
+it is important you quote the second argument to this function
+          
+associative arrays work in alphabetical order
+          
+use "," to separate the variables to assign each array element to
+          
           
 ```bash          
 destrucutre array values
