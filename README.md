@@ -33,7 +33,7 @@ includes string stringToSearch ?depth
 
 includes "bash" sh 2
 
-returns 1 for false or 0 for true
+#returns 1 for false or 0 for true
 ```
 
 #endsWith
