@@ -7,7 +7,7 @@ repeats a string
 ``` bash
 repeatString string ?depth
 
-depth >> how many times to repeat the string
+#depth >> how many times to repeat the string
 
 repeatString "bash" 5 # bashbashbash
 ```
